@@ -103,6 +103,27 @@ sys_close(void)
   return 0;
 }
 
+
+
+int
+sys_getiostats(void)
+{
+  int fd;
+  struct iostats *IoStatsData = 0x0;
+
+  if((argint(0,&fd) < 0) || (argint(1,(int*)IoStatsData) < 0))
+    return -1;
+
+  return getiostats(fd,IoStatsData);	    
+
+}
+
+int getiostats(int fd,struct iostats* IoStatsData)
+{
+  cprintf("VIKASV");
+  return 0;  
+}
+
 int
 sys_fstat(void)
 {
