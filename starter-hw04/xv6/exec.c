@@ -6,6 +6,12 @@
 #include "defs.h"
 #include "x86.h"
 #include "elf.h"
+#include "fs.h"
+#include "spinlock.h"
+#include "sleeplock.h"
+#include "file.h"
+#include "fcntl.h"
+
 
 int
 exec(char *path, char **argv)
@@ -99,6 +105,21 @@ exec(char *path, char **argv)
   curproc->sz = sz;
   curproc->tf->eip = elf.entry;  // main
   curproc->tf->esp = sp;
+
+  // Reset the number of bytes to read and write for
+  // all open file descriptors of a process here . 
+  for(int fd = 0; fd < NOFILE; fd++)
+  {
+    if(curproc->ofile[fd] != 0)
+    {
+      struct file* openFilePtr = curproc->ofile[fd];
+
+      openFilePtr->num_read_bytes = 0;
+      openFilePtr->num_write_bytes = 0;
+    }
+  }
+  
+
   switchuvm(curproc);
   freevm(oldpgdir);
   return 0;

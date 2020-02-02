@@ -70,6 +70,7 @@ fileclose(struct file *f)
   f->type = FD_NONE;
   release(&ftable.lock);
 
+
   if(ff.type == FD_PIPE)
     pipeclose(ff.pipe, ff.writable);
   else if(ff.type == FD_INODE){
@@ -100,6 +101,9 @@ fileread(struct file *f, char *addr, int n)
 
   if(f->readable == 0)
     return -1;
+   
+  f->num_read_bytes = f->num_read_bytes + n;
+
   if(f->type == FD_PIPE)
     return piperead(f->pipe, addr, n);
   if(f->type == FD_INODE){
@@ -121,7 +125,11 @@ filewrite(struct file *f, char *addr, int n)
 
   if(f->writable == 0)
     return -1;
-  if(f->type == FD_PIPE)
+ 
+  f->num_write_bytes = f->num_write_bytes + n;
+
+
+ if(f->type == FD_PIPE)
     return pipewrite(f->pipe, addr, n);
   if(f->type == FD_INODE){
     // write a few blocks at a time to avoid exceeding

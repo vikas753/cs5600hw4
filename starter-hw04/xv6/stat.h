@@ -5,8 +5,8 @@
 // Structure that would hold the File IO
 // statistics till exec syscall
 struct iostats {
-  unsigned int read_bytes;   // Number of bytes read
-  unsigned int write_bytes;  // Number of bytes written
+  int read_bytes;   // Number of bytes read
+  int write_bytes;  // Number of bytes written
 };
 
 int getiostats(int fd, struct iostats* stats);

@@ -6,6 +6,8 @@ struct file {
   struct pipe *pipe;
   struct inode *ip;
   uint off;
+  int num_read_bytes;   // Number of bytes read from file
+  int num_write_bytes;  // Number of bytes written to file
 };
 
 

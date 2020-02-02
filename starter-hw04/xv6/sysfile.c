@@ -105,22 +105,48 @@ sys_close(void)
 
 
 
+// Syscall wrapper for retreving IO statistics of 
+// a file
 int
 sys_getiostats(void)
 {
   int fd;
   struct iostats *IoStatsData = 0x0;
 
-  if((argint(0,&fd) < 0) || (argint(1,(int*)IoStatsData) < 0))
+  // Parse the arguments of syscall using inbuilt apis : argint 
+  // argument 0 : file descriptor , argument 1 : IO statistics data
+  if((argint(0,&fd) < 0) || (argint(1,(int*)&IoStatsData) < 0))
     return -1;
 
   return getiostats(fd,IoStatsData);	    
 
 }
 
+// Api : that would fill the argument 2 with IO statistics
 int getiostats(int fd,struct iostats* IoStatsData)
 {
-  cprintf("VIKASV");
+  struct file* OpenFilePtr = myproc()->ofile[fd];
+  struct stat FileStats;
+
+  if(OpenFilePtr == 0)
+  {
+    cprintf(" Incorrect fd used for getting statistics\n " );
+    return -1;
+  }
+
+  if(filestat(OpenFilePtr , &FileStats) == -1)
+  {
+    cprintf(" Not able to retrieve file statistics for given file\n ");
+    return -1;    
+  }
+
+  // If the number of bytes to be read is more than size of the file , then
+  // only size would be readback and same should be updated in IO statistics
+  IoStatsData->read_bytes = (OpenFilePtr->num_read_bytes > FileStats.size)?
+	                          FileStats.size:OpenFilePtr->num_read_bytes;
+
+  IoStatsData->write_bytes = OpenFilePtr->num_write_bytes;
+
   return 0;  
 }
 
@@ -348,6 +374,11 @@ sys_open(void)
   f->type = FD_INODE;
   f->ip = ip;
   f->off = 0;
+
+  // Reset the IO statistics in Open Syscall of any file
+  f->num_read_bytes = 0;
+  f->num_write_bytes = 0;
+
   f->readable = !(omode & O_WRONLY);
   f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
   return fd;
